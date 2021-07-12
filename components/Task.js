@@ -3,11 +3,16 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 const Task = (props) => {
   return (
+    // Task Item
     <View style={styles.item}>
+      {/* The left side of the task */}
       <View style={styles.itemLeft}>
+        {/* The square checkbox */}
         <View style={styles.square}></View>
+        {/* The task text */}
         <Text style={styles.text}>{props.text}</Text>
       </View>
+      {/* The Task right-side dot */}
       <View style={styles.circular}></View>
     </View>
   );
@@ -20,7 +25,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "space-between", // Allows the right-side dot to push all the way over
     marginBottom: 20,
   },
   itemLeft: {
