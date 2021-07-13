@@ -1,77 +1,57 @@
-import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
+import { StyleSheet, View, useAuthState } from "react-native";
+import firebase from "firebase/app";
+import "firebase/auth";
+
+import TaskListScreen from "./app/screens/TaskListScreen";
+import SignInScreen from "./app/screens/SignInScreen";
 import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  KeyboardAvoidingView,
-  TouchableOpacity,
-  Keyboard,
-} from "react-native";
-import Task from "./components/Task";
+  GetUser,
+  SaveTaskToDB,
+  SaveUserToDB,
+  SetDB,
+  SetUser,
+} from "./app/components/Firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAAH3-BfLeqN25j-wB5qWwwnM5-zT-YJHc",
+  authDomain: "fir-testproject-9f16f.firebaseapp.com",
+  databaseURL: "https://fir-testproject-9f16f-default-rtdb.firebaseio.com",
+  projectId: "fir-testproject-9f16f",
+  storageBucket: "fir-testproject-9f16f.appspot.com",
+  messagingSenderId: "213819093132",
+  appId: "1:213819093132:web:4f8c14efde56c3965e8ba9",
+  measurementId: "G-STN7S73YN2",
+};
+firebase.initializeApp(firebaseConfig);
 
 export default function App() {
-  // Creates a state in a functional component, stateVariable/stateSetter()
-  const [task, setTask] = useState();
-  const [taskItems, setTaskItems] = useState([]);
+  const [signedIn, setSignedIn] = useState(false);
+  var db = firebase.firestore();
 
-  const handleAddTask = () => {
-    // Re-hides the keyboard on mobile
-    Keyboard.dismiss();
-    // ...taskItems represents ALL other items in the array
-    setTaskItems([...taskItems, task]);
-    // sets task as null so that the text input empties
-    setTask("");
-  };
+  // Listen for signin
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      // Set Firebase Info
+      SetUser(user);
+      SetDB(db);
 
-  // remove the task when it's clicked
-  const completeTask = (index) => {
-    let itemsCopy = [...taskItems];
-    itemsCopy.splice(index, 1); // removes the one task index
-    setTaskItems(itemsCopy);
-  };
+      setSignedIn(true);
+
+      // Save user to Firebase
+      SaveUserToDB({
+        email: user.email,
+        displayName: user.displayName,
+      });
+    } else {
+      setSignedIn(false);
+    }
+  });
 
   // Builds the UI
   return (
     <View style={styles.container}>
-      {/* Today's Tasks */}
-      <View style={styles.taskWrapper}>
-        <Text style={styles.sectionTitle}>Today's Tasks</Text>
-
-        <View style={styles.items}>
-          {/* this is where the task array gets shown */}
-          {taskItems.map((item, index) => {
-            return (
-              <TouchableOpacity key={index} onPress={() => completeTask(index)}>
-                <Task text={item} />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* Write a task */}
-      {/* KeyboardAvoidingView allows the screen to "avoid" the keyboard when open on mobile */}
-      {/* This view is a "wrapper" for the text input and add button */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.writeTaskWrapper}
-      >
-        <TextInput
-          style={styles.input}
-          placeholder={"Write a task"}
-          value={task}
-          onChangeText={(text) => setTask(text)}
-        />
-        {/* TouchableOpacity is a button */}
-        <TouchableOpacity onPress={() => handleAddTask()}>
-          <View style={styles.addWrapper}>
-            <Text style={styles.addText}>+</Text>
-          </View>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
+      {signedIn ? <TaskListScreen /> : <SignInScreen />}
     </View>
   );
 }
@@ -79,45 +59,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#E8EAED",
-  },
-  taskWrapper: {
-    paddingTop: 80,
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  items: {
-    marginTop: 30,
-  },
-  writeTaskWrapper: {
-    position: "absolute",
-    bottom: 60,
     width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
+    height: "100%",
   },
-  input: {
-    paddingVertical: 15,
-    paddingHorizontal: 15,
-    width: "90%",
-    backgroundColor: "#fff",
-    borderRadius: 60,
-    borderColor: "#C0C0C0",
-    borderWidth: 1,
-  },
-  addWrapper: {
-    width: 60,
-    height: 60,
-    backgroundColor: "#fff",
-    borderRadius: 60,
-    justifyContent: "center",
-    alignItems: "center",
-    borderColor: "#C0C0C0",
-    borderWidth: 1,
-  },
-  addText: {},
 });
